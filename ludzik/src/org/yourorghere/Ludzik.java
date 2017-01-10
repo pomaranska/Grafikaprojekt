@@ -1,26 +1,42 @@
 package org.yourorghere;
 
 import com.sun.opengl.util.Animator;
+import com.sun.opengl.util.texture.Texture;
+import com.sun.opengl.util.texture.TextureIO;
 import java.awt.Frame;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
+import javax.swing.JOptionPane;
 
 
 public class Ludzik implements GLEventListener {
 
-//statyczne pola okreœlaj¹ce rotacjê wokó³ osi X i Y
-    private static float xrot = 0.0f, yrot = 0.0f;
+//statyczne pola okreœlaj¹ce rotacjê wokó³ osi X,Y,Z
+    private static float xrot = 0.0f, yrot = 0.0f, zrot= 0.0f;
     public static float cx=0.0f, cy=0.0f, cz=-1.0f;
     private static int startList;
     private static int lewareka = 0, prawareka =0, lewanoga=0, prawanoga=0, glowa=0;
+    public static Ludzik ludzik = new Ludzik();
+    public static Scena scena = new Scena();
+    static BufferedImage image1 = null, image2 = null, image3 = null;
+    static Texture t1 = null, t2 = null, t3 = null;
+    
+    
+    float kat1 = 0.0f;
+    float kat3 = 45.0f;
+    float kat5 = -45.0f;
+    float kat7 = -45.0f;
 
     public static void main(String[] args) {
         Frame frame = new Frame("Simple JOGL Application");
@@ -28,7 +44,7 @@ public class Ludzik implements GLEventListener {
 
         canvas.addGLEventListener(new Ludzik());
         frame.add(canvas);
-        frame.setSize(900, 900);
+        frame.setSize(640, 480);
         final Animator animator = new Animator(canvas);
         frame.addWindowListener(new WindowAdapter() {
 
@@ -46,55 +62,72 @@ public class Ludzik implements GLEventListener {
                 }).start();
             }
         });
-        //Obs³uga klawiszy strza³ek
-         frame.addKeyListener(new KeyListener()
-         {
-         public void keyPressed(KeyEvent e)
-         {
-         if(e.getKeyCode() == KeyEvent.VK_UP)
-         cy += 0.1f;
-         if(e.getKeyCode() == KeyEvent.VK_DOWN)
-         cy -=0.1f;
-         if(e.getKeyCode() == KeyEvent.VK_RIGHT)
-         cx += 0.1f;
-         if(e.getKeyCode() == KeyEvent.VK_LEFT)
-         cx -=0.1f;
+        
+        //Obs³uga klawiszy strza³ek, W, S, 1, 2, 3, 4, 5, 6, 7, 8, 9
+        frame.addKeyListener(new KeyListener()
+        {
+        public void keyPressed(KeyEvent e)
+        {
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            xrot -= 1.0f;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            xrot += 1.0f;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            scena.kat+=1.5f;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            scena.kat-=1.5f;
+        }
+                /*if (e.getKeyCode() == KeyEvent.VK_Z) {
+                    zrot -= 1.0f;
+                }
+                if (e.getKeyCode() == KeyEvent.VK_X) {
+                    zrot -= 1.0f;
+                }*/
+        if (e.getKeyCode() == KeyEvent.VK_W) {
+            if(scena.x>=-98 && scena.x<=98 &&scena.z>=-98 && scena.z<=98)
+                scena.przesun(-1.0f);     
+        }
+                
+        if (e.getKeyCode() == KeyEvent.VK_S) {
+            if(scena.x>=-99f && scena.x<=99f &&scena.z>=-99f && scena.z<=99f)
+                scena.przesun(1.0f);
+        }
+        
+        if (e.getKeyChar() == '1')
+            lewanoga++;
          
-         if (e.getKeyChar() == '1')
-             lewanoga++;
+        if (e.getKeyChar() == '2')
+            lewanoga--;
          
-         if (e.getKeyChar() == '2')
-             lewanoga--;
+        if (e.getKeyChar() == '3')
+            prawanoga++;
          
-         if (e.getKeyChar() == '3')
-             prawanoga++;
+        if (e.getKeyChar() == '4')
+            prawanoga--;
          
-         if (e.getKeyChar() == '4')
-             prawanoga--;
+        if (e.getKeyChar() == '5')
+            lewareka++;
          
-         if (e.getKeyChar() == '5')
-             lewareka++;
+        if (e.getKeyChar() == '6')
+            lewareka--;
          
-         if (e.getKeyChar() == '6')
-             lewareka--;
+        if (e.getKeyChar() == '7')
+            prawareka++;
          
-         if (e.getKeyChar() == '7')
-             prawareka++;
+        if (e.getKeyChar() == '8')
+            prawareka--;
          
-         if (e.getKeyChar() == '8')
-             prawareka--;
+        if (e.getKeyChar() == '9')
+            glowa++;        
          
-         if (e.getKeyChar() == '9')
-             glowa++;
+        } 
          
-         }
-         
-         
-         
-         public void keyReleased(KeyEvent e){}
-         public void keyTyped(KeyEvent e){}
-         });
-
+        public void keyReleased(KeyEvent e){}
+        public void keyTyped(KeyEvent e){}
+        });
 
         // Center frame
         frame.setLocationRelativeTo(null);
@@ -107,10 +140,7 @@ public class Ludzik implements GLEventListener {
         // Use debug pipeline
         // drawable.setGL(new DebugGL(drawable.getGL()));      
         
-        GL gl = drawable.getGL();
-        
-        
-        
+        GL gl = drawable.getGL(); 
         System.err.println("INIT GL IS: " + gl.getClass().getName());
 
         // Enable VSync
@@ -159,6 +189,31 @@ public class Ludzik implements GLEventListener {
         gl.glMateriali(GL/*2*/.GL_FRONT,GL/*2*/.GL_SHININESS,128);
         
     
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        // Setup the drawing area and shading mode
+        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        gl.glShadeModel(GL.GL_SMOOTH); // try setting this to GL_FLAT and see what happens.
+
+        try {
+            image1 = ImageIO.read(new File("krajobraz.bmp"));
+            image2 = ImageIO.read(new File("trawa.bmp"));
+            image3 = ImageIO.read(new File("niebo.bmp"));
+        } catch (Exception exc) {
+            JOptionPane.showMessageDialog(null, exc.toString());
+            return;
+        }
+
+        t1 = TextureIO.newTexture(image1, false);
+        t2 = TextureIO.newTexture(image2, false);
+        t3 = TextureIO.newTexture(image3, false);
+
+        gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_BLEND | GL.GL_MODULATE);
+        gl.glEnable(GL.GL_TEXTURE_2D);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+         
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
@@ -175,173 +230,13 @@ public class Ludzik implements GLEventListener {
         gl.glViewport(0, 0, width, height);
         gl.glMatrixMode(GL.GL_PROJECTION);
         gl.glLoadIdentity();
-      
-        
-        
-        
-        if (width <= height) gl.glOrtho(-10, 10, -10 * (float) height / (float) width,
-        10 * (float) height / (float) width, -10.0, 10.0);
-    else gl.glOrtho(-10 * (float) width / (float) height, 10 * (float) width / (float) height,
-        -10, 10, -10.0, 10.0);
-    glu.gluLookAt(0,0,0,cx,cy,-1,0,1,0);
-    gl.glMatrixMode(GL.GL_MODELVIEW);
+        glu.gluPerspective(150.0f, h, 0.2f, 300.0f); //transformacja perspektywiczna              
+        gl.glMatrixMode(GL.GL_MODELVIEW);
         gl.glLoadIdentity();
-
 
     }
     
-    /*
-    void walec(GL gl){
-        float x,y,kat;
-//kolo gora        
-        gl.glBegin(GL.GL_TRIANGLE_FAN);
-                gl.glColor3f(0.9f, 0.0f, 0.1f);
-                gl.glVertex3f(0.0f,0.0f,-1.0f); //œrodek
-                for(kat = 0.0f; kat < (2.0f*Math.PI);
-                kat+=(Math.PI/32.0f))
-                {
-                x = 0.5f*(float)Math.sin(kat);
-                y = 0.5f*(float)Math.cos(kat);
-                gl.glVertex3f(x, y, -1.0f); //kolejne punkty
-                }
-                gl.glEnd();
-                
-//kolo dol/
-        gl.glBegin(GL.GL_TRIANGLE_FAN);
-                gl.glColor3f(0.9f, 0.0f, 0.1f);
-                gl.glVertex3f(0.0f,0.0f,0.0f); //œrodek
-                for(kat = 0.0f; kat < (2.0f*Math.PI);
-                kat+=(Math.PI/32.0f))
-                {
-                x = 0.5f*(float)Math.sin(kat);
-                y = 0.5f*(float)Math.cos(kat);
-                gl.glVertex3f(y, x,0.0f); //kolejne punkty
-                }
-                gl.glEnd();
-
-        gl.glBegin(GL.GL_QUAD_STRIP);
-        gl.glColor3f(1.0f, 0.0f, 0.0f);
-
-        for(kat = 0.0f; kat < (2.0f*Math.PI);
-                kat+=(Math.PI/32.0f))
-                {
-                x = 0.5f*(float)Math.sin(kat);
-                y = 0.5f*(float)Math.cos(kat);
-                gl.glVertex3f(y, x, 0.0f); //kolejne punkty gorna krawedz
-                gl.glVertex3f(y, x, -1.0f); //kolejne punkty dolna
-                }
-        gl.glEnd();}
-
-
-       void stozek(GL gl)
-       {
-       //wywo³ujemy automatyczne normalizowanie normalnych
-       gl.glEnable(GL.GL_NORMALIZE);
-       float x,y,kat;
-       gl.glBegin(GL.GL_TRIANGLE_FAN);
-       gl.glColor3f(0.0f,1.0f,0.0f);
-       gl.glVertex3f(0.0f, 0.0f, -2.0f); //wierzcholek stozka
-       for(kat = 0.0f; kat < (2.0f*Math.PI); kat += (Math.PI/32.0f))
-       {
-       x = (float)Math.sin(kat);
-       y = (float)Math.cos(kat);
-       gl.glNormal3f((float)Math.sin(kat),(float)Math.cos(kat),-2.0f);
-       gl.glVertex3f(x, y, 0.0f);
-       }
-       gl.glEnd();
-       gl.glBegin(GL.GL_TRIANGLE_FAN);
-       gl.glColor3f(0.5f,1.5f,0.5f);
-       gl.glNormal3f(0.0f,0.0f,1.0f);
-       gl.glVertex3f(0.0f, 0.0f, 0.0f); //srodek kola
-       for(kat = 2.0f*(float)Math.PI; kat > 0.0f; kat -= (Math.PI/32.0f))
-       {
-       x = (float)Math.sin(kat);
-       y = (float)Math.cos(kat);
-       gl.glVertex3f(x, y, 0.0f);
-       }
-       gl.glEnd();
-       }
-
-       void Lyzka(GL gl) {
-            gl.glDisable(GL.GL_CULL_FACE);
-            gl.glBegin(GL.GL_TRIANGLES);
-//prawa
-            gl.glNormal3f(0.0f, 0.0f, 1.0f);
-            gl.glVertex3f(0.0f, 0.0f, 0.5f);
-            gl.glVertex3f(0.5f, 0.5f, 0.5f);
-            gl.glVertex3f(0.0f, 0.5f, 0.5f);
-//lewa
-            gl.glNormal3f(0.0f, 0.0f, -1.0f);
-            gl.glVertex3f(0.0f, 0.0f, -0.2f);
-            gl.glVertex3f(0.0f, 0.5f, -0.2f);
-            gl.glVertex3f(0.5f, 0.5f, -0.2f);
-            gl.glEnd();
-            gl.glDisable(GL.GL_CULL_FACE);
-            gl.glBegin(GL.GL_QUADS);
-            gl.glNormal3f(-1.0f, 0.0f, 0.0f);
-            gl.glVertex3f(0.0f, 0.0f, 0.5f);
-            gl.glVertex3f(0.0f, 0.5f, 0.5f);
-            gl.glVertex3f(0.0f, 0.5f, -0.2f);
-            gl.glVertex3f(0.0f, 0.0f, -0.2f);
-            gl.glNormal3f(0.0f, 1.0f, 0.0f);
-            gl.glVertex3f(0.0f, 0.5f, 0.5f);
-            gl.glVertex3f(0.5f, 0.5f, 0.5f);
-            gl.glVertex3f(0.5f, 0.5f, -0.2f);
-            gl.glVertex3f(0.0f, 0.5f, -0.2f);
-            gl.glEnd();
-            gl.glEnable(GL.GL_CULL_FACE);
-        }
-       
-       private void Prostopadloscian(GL gl, float x0, float y0, float z0,
-                float dx, float dy, float dz) {
-
-            float x1 = x0 + dx;
-            float y1 = y0 + dy;
-            float z1 = z0 + dz;
-            gl.glBegin(GL.GL_QUADS);
-//sciana przednia
-
-            gl.glNormal3f(0.0f, 0.0f, 1.0f);
-            gl.glVertex3f(x0, y0, z1);
-            gl.glVertex3f(x1, y0, z1);
-            gl.glVertex3f(x1, y1, z1);
-            gl.glVertex3f(x0, y1, z1);
-//sciana tylnia
-
-            gl.glNormal3f(0.0f, 0.0f, -1.0f);
-            gl.glVertex3f(x0, y1, z0);
-            gl.glVertex3f(x1, y1, z0);
-            gl.glVertex3f(x1, y0, z0);
-            gl.glVertex3f(x0, y0, z0);
-//sciana lewa
-            gl.glNormal3f(-1.0f, 0.0f, 0.0f);
-            gl.glVertex3f(x0, y0, z0);
-            gl.glVertex3f(x0, y0, z1);
-            gl.glVertex3f(x0, y1, z1);
-            gl.glVertex3f(x0, y1, z0);
-//sciana prawa
-            gl.glNormal3f(1.0f, 0.0f, 0.0f);
-            gl.glVertex3f(x1, y1, z0);
-            gl.glVertex3f(x1, y1, z1);
-            gl.glVertex3f(x1, y0, z1);
-            gl.glVertex3f(x1, y0, z0);
-//sciana dolna
-           
-            gl.glNormal3f(0.0f, -1.0f, 0.0f);
-            gl.glVertex3f(x0, y0, z1);
-            gl.glVertex3f(x0, y0, z0);
-            gl.glVertex3f(x1, y0, z0);
-            gl.glVertex3f(x1, y0, z1);
-//sciana gorna
-             gl.glColor3f(0.9f, 0.0f, 0.1f);
-            gl.glNormal3f(0.0f, 1.0f, 0.0f);
-            gl.glVertex3f(x1, y1, z1);
-            gl.glVertex3f(x1, y1, z0);
-            gl.glVertex3f(x0, y1, z0);
-            gl.glVertex3f(x0, y1, z1);
-            gl.glEnd();
-        }
-       */
+    
        int cos = 0;
     public static float qwrot = 60.0f, asrot = -45.0f, zxrot = -45.0f,
             obrot = 0.0f, uprot = 0.0f, downrot = 0.0f;
@@ -378,12 +273,12 @@ public class Ludzik implements GLEventListener {
         gl.glTranslatef(0,4,0);
         gl.glColor3f(1,0,0);
         gl.glRotated(90, 1, 0, 0);// dodaæ rotatef(obrot, oœ);      
-        glu.gluCylinder(qobj2, 2, 2, 3.0, 15, 5);
+        glu.gluCylinder(qobj2, 2, 2, 2.0, 15, 5);
 
         gl.glPopMatrix(); //powrot do 0,0,0
         gl.glPushMatrix(); //zapis stanu 0,0,0
         gl.glTranslatef(-2,4,0);
-        gl.glColor3f(0,1,0);
+        gl.glColor3f(1,0,1);
         gl.glRotated(90, 1, 0, 0);
         gl.glRotated(lewareka,1,0,0);
         glu.gluCylinder(qobj2, 0.5, 0.5, 5f, 15, 5);
@@ -392,7 +287,7 @@ public class Ludzik implements GLEventListener {
         gl.glPushMatrix();
 
         gl.glTranslatef(2,4,0);
-        gl.glColor3f(0,1,0);
+        gl.glColor3f(1,0,1);
         gl.glRotated(90, 1, 0, 0);
         gl.glRotated(prawareka,1,0,0);
         glu.gluCylinder(qobj2, 0.5, 0.5, 5f, 15, 5);
@@ -415,56 +310,7 @@ public class Ludzik implements GLEventListener {
         
         gl.glEndList();
 }
-
-/*
-
-                gl.glPushMatrix();
-//        gl.glLoadIdentity();
-        gl.glTranslatef(0.0f,1.0f,-10.0f);
-
-  
-        gl.glRotatef(-90.0f,-1.0f,0.0f,0.0f);
-        gl.glRotatef(xrot,1.0f,0.0f,0.0f);
-        gl.glRotatef(yrot,0.0f,1.0f,0.0f);
-         walec(gl);
-        gl.glTranslatef(0.0f, 0.0f, -1.0f); 
-//ramie 1 prawa
-            gl.glTranslatef(0.5f, 0.0f, 0.0f);
-            gl.glRotatef(60.0f, 0.0f, obrot, 1.0f);
-//gl.glRotatef(45.0f,0.0f,0.0f,1.0f);
-            Prostopadloscian(gl, 0.0f, 0.0f, 0.0f, 1.8f, 0.3f, 0.3f);
-//ramie 2 prawa
-            gl.glTranslatef(1.5f, 0.0f, 0.0f);
-            gl.glRotatef(asrot, 0.0f, 1.0f, 0.0f);
-//gl.glRotatef(-45.0f,0.0f,0.0f,1.0f);
-            Prostopadloscian(gl, 0.0f, 0.0f, 0.0f, 1.5f, 0.3f, 0.3f);
-        gl.glPopMatrix();
-        
-          gl.glPushMatrix();
-//        gl.glLoadIdentity();
-        gl.glTranslatef(0.1f,1.8f,-10.0f);
-
-  
-        gl.glRotatef(-90.0f,-1.0f,0.0f,0.0f);
-        gl.glRotatef(xrot,1.0f,0.0f,0.0f);
-        gl.glRotatef(yrot,0.0f,1.0f,0.0f);
-        
-        
-//ramie 1 lewa
-            gl.glTranslatef(-0.5f, 0.0f, 0.0f);
-            gl.glRotatef(-245.0f, 0.0f, obrot, 1.0f);
-//gl.glRotatef(45.0f,0.0f,0.0f,1.0f);
-            Prostopadloscian(gl, 0.0f, 0.0f, 0.0f, 1.8f, 0.3f, 0.3f);
-//ramie 2 lewa
-            gl.glTranslatef(1.5f, 0.0f, 0.0f);
-            gl.glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
-//gl.glRotatef(-45.0f,0.0f,0.0f,1.0f);
-            Prostopadloscian(gl, 0.0f, 0.0f, 0.0f, 1.5f, 0.3f, 0.3f);
-        gl.glPopMatrix();
-    }*/
-    
-    
-    
+   
     public void display(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
         GLU glu = new GLU();
@@ -475,7 +321,18 @@ public class Ludzik implements GLEventListener {
 
         gl.glLoadIdentity();
         glu.gluLookAt(0,0,0,cx,cy,-1,0,1,0);
-         ludzik(gl);
+        
+        gl.glTranslatef(0.0f, 0.0f, -4.0f); //przesuniêcie o 6 jednostek
+        gl.glRotatef(xrot, 1.0f, 0.0f, 0.0f);
+        gl.glRotatef(scena.kat, 0.0f, 1.0f, 0.0f);
+        
+        // Drawing Using Triangles
+        gl.glTranslatef(-scena.x, 90.5f, -scena.z); 
+        scena.Rysuj(gl, t1, t2, t3);
+        gl.glTranslatef(scena.x, -95.5f, scena.z); 
+        
+        
+        ludzik(gl);
         gl.glCallList(startList);      
        
         // Flush all drawing operations to the graphics card
