@@ -80,12 +80,8 @@ public class Ludzik implements GLEventListener {
         if (e.getKeyCode() == KeyEvent.VK_LEFT) {
             scena.kat-=1.5f;
         }
-                /*if (e.getKeyCode() == KeyEvent.VK_Z) {
-                    zrot -= 1.0f;
-                }
-                if (e.getKeyCode() == KeyEvent.VK_X) {
-                    zrot -= 1.0f;
-                }*/
+                 
+                
         if (e.getKeyCode() == KeyEvent.VK_W) {
             if(scena.x>=-98 && scena.x<=98 &&scena.z>=-98 && scena.z<=98)
                 scena.przesun(-1.0f);     
@@ -235,12 +231,109 @@ public class Ludzik implements GLEventListener {
         gl.glLoadIdentity();
 
     }
-    
-    
+        
        int cos = 0;
     public static float qwrot = 60.0f, asrot = -45.0f, zxrot = -45.0f,
             obrot = 0.0f, uprot = 0.0f, downrot = 0.0f;
 
+    void Walec(GL gl, float promien, float dlugosc, float px, float py, float pz) {
+        float x = 0.0f, y = 0.0f, kat = 0.0f;
+        gl.glBegin(GL.GL_QUAD_STRIP);
+        for (kat = 0.0f; kat < (2.0f * Math.PI); kat += (Math.PI / 32.0f)) {
+            x = px + promien * (float) Math.sin(kat);
+            y = py + promien * (float) Math.cos(kat);
+            gl.glNormal3f((float) Math.sin(kat), (float) Math.cos(kat), 0.0f);
+            gl.glVertex3f(x, y, pz);
+            gl.glVertex3f(x, y, pz + dlugosc);
+        }
+        gl.glEnd();
+        gl.glNormal3f(0.0f, 0.0f, -1.0f);
+        x = y = kat = 0.0f;
+        gl.glBegin(GL.GL_TRIANGLE_FAN);
+        gl.glVertex3f(px, py, pz); //srodek kola
+        for (kat = 0.0f; kat < (2.0f * Math.PI); kat += (Math.PI / 32.0f)) {
+            x = px + promien * (float) Math.sin(kat);
+            y = py + promien * (float) Math.cos(kat);
+            gl.glVertex3f(x, y, pz);
+        }
+        gl.glEnd();
+        gl.glNormal3f(0.0f, 0.0f, 1.0f);
+        x = y = kat = 0.0f;
+        gl.glBegin(GL.GL_TRIANGLE_FAN);
+        gl.glVertex3f(px, py, pz + dlugosc); //srodek kola
+        for (kat = 2.0f * (float) Math.PI; kat > 0.0f; kat -= (Math.PI / 32.0f)) {
+            x = px + promien * (float) Math.sin(kat);
+            y = py + promien * (float) Math.cos(kat);
+            gl.glVertex3f(x, y, pz + dlugosc);
+        }
+        gl.glEnd();
+    }
+
+        void walec2(GL gl) {
+//wywo³ujemy automatyczne normalizowanie normalnych
+//bo operacja skalowania je zniekszta³ci
+        gl.glEnable(GL.GL_NORMALIZE);
+
+        float x, y, kat;
+        gl.glColor3f(1.5f, 0.75f, 0.0f);
+        gl.glBegin(GL.GL_QUAD_STRIP);
+        for (kat = 0.0f; kat < (2.0f * Math.PI); kat += (Math.PI / 32.0f)) {
+            x = 0.5f * (float) Math.sin(kat);
+            y = 0.5f * (float) Math.cos(kat);
+            gl.glNormal3f((float) Math.sin(kat), (float) Math.cos(kat), 0.0f);
+            gl.glVertex3f(x, y, -1.0f);
+            gl.glVertex3f(x, y, 0.0f);
+        }
+        gl.glEnd();
+        gl.glNormal3f(0.0f, 0.0f, -1.0f);
+        x = y = kat = 0.0f;
+        gl.glBegin(GL.GL_TRIANGLE_FAN);
+        gl.glVertex3f(0.0f, 0.0f, -1.0f); //srodek kola
+        for (kat = 0.0f; kat < (2.0f * Math.PI); kat += (Math.PI / 32.0f)) {
+            x = 0.5f * (float) Math.sin(kat);
+            y = 0.5f * (float) Math.cos(kat);
+            gl.glVertex3f(x, y, -1.0f);
+        }
+        gl.glEnd();
+        gl.glNormal3f(0.0f, 0.0f, 1.0f);
+        x = y = kat = 0.0f;
+        gl.glBegin(GL.GL_TRIANGLE_FAN);
+        gl.glVertex3f(0.0f, 0.0f, 0.0f); //srodek kola
+        for (kat = 2.0f * (float) Math.PI; kat > 0.0f; kat -= (Math.PI / 32.0f)) {
+            x = 0.5f * (float) Math.sin(kat);
+            y = 0.5f * (float) Math.cos(kat);
+            gl.glVertex3f(x, y, 0.0f);
+        }
+        gl.glEnd();
+    }
+        
+        void stozek(GL gl) {
+//wywo³ujemy automatyczne normalizowanie normalnych
+        gl.glEnable(GL.GL_NORMALIZE);
+        float x, y, kat;
+        gl.glColor3f(0.0f, 1.0f, 0.0f);
+        gl.glBegin(GL.GL_TRIANGLE_FAN);
+        gl.glVertex3f(0.0f, 0.0f, -2.0f); //wierzcholek stozka
+        for (kat = 0.0f; kat < (4.0f * Math.PI); kat += (Math.PI / 32.0f)) {
+            x = (float) Math.sin(kat);
+            y = (float) Math.cos(kat);
+            gl.glNormal3f((float) Math.sin(kat), (float) Math.cos(kat), -2.0f);
+            gl.glVertex3f(x, y, 0.0f);
+        }
+        gl.glEnd();
+        gl.glBegin(GL.GL_TRIANGLE_FAN);
+        gl.glNormal3f(0.0f, 0.0f, 1.0f);
+        gl.glVertex3f(0.0f, 0.0f, 0.0f); //srodek kola
+        for (kat = 2.0f * (float) Math.PI; kat > 0.0f; kat -= (Math.PI / 32.0f)) {
+            x = (float) Math.sin(kat);
+            y = (float) Math.cos(kat);
+            gl.glVertex3f(x, y, 0.0f);
+        }
+        gl.glEnd();
+    }
+
+    
+    
     void ludzik(GL gl){
          gl.glColor3f(1, 1, 1);
          GLU glu = new GLU();
@@ -258,30 +351,43 @@ public class Ludzik implements GLEventListener {
          glu.gluQuadricNormals(qobj2, GLU.GLU_SMOOTH);
          
          gl.glNewList(startList, GL.GL_COMPILE);
-
-        gl.glColor3f(1,1,1);
+         
+         gl.glRotatef(-scena.kat+180, 0.0f, 1.0f, 0.0f);
+         gl.glColor3f(1,1,1);
 
         gl.glPushMatrix();
-        gl.glTranslatef(0,5,0);
-        gl.glRotated(glowa, 1,1,0);
-        glu.gluSphere(qobj, 1, 20, 20);
-        
+        gl.glTranslatef(0,6,0);
+        gl.glRotated(90, 1, 0, 0);
+        /*gl.glRotated(glowa, 0,0,0);*/
+        Walec(gl, 1.0f, 1.5f, -1.5f, -1.0f, -1.25f); //glowa
+        /*glu.gluSphere(qobj, 1, 20, 20);*/        
 
+        gl.glPopMatrix();
+        gl.glPushMatrix();
+        
+        gl.glPushMatrix();
+        gl.glTranslatef(0,5,0);
+        gl.glRotated(90, 1, 0, 0);
+        Walec(gl, 0.5f, 1.5f, -1.5f, -1.0f, -1.25f); //szyja
+        
         gl.glPopMatrix();
         gl.glPushMatrix();
 
         gl.glTranslatef(0,4,0);
         gl.glColor3f(1,0,0);
-        gl.glRotated(90, 1, 0, 0);// dodaæ rotatef(obrot, oœ);      
-        glu.gluCylinder(qobj2, 2, 2, 2.0, 15, 5);
-
+        gl.glRotated(90, 1, 0, 0);
+        Walec(gl, 1.5f, 3.5f, -1.5f, -1.0f, -1.25f); //tu³w
+        /*glu.gluCylinder(qobj2, 2, 2, 2.0, 15, 5);*/      
+        
         gl.glPopMatrix(); //powrot do 0,0,0
         gl.glPushMatrix(); //zapis stanu 0,0,0
+        
         gl.glTranslatef(-2,4,0);
         gl.glColor3f(1,0,1);
         gl.glRotated(90, 1, 0, 0);
         gl.glRotated(lewareka,1,0,0);
-        glu.gluCylinder(qobj2, 0.5, 0.5, 5f, 15, 5);
+        Walec(gl, 0.5f, 5.0f, -1.5f, -1.0f, -1.25f);
+        //glu.gluCylinder(qobj2, 0.5, 0.5, 5f, 15, 5);
 
         gl.glPopMatrix();
         gl.glPushMatrix();
@@ -290,7 +396,8 @@ public class Ludzik implements GLEventListener {
         gl.glColor3f(1,0,1);
         gl.glRotated(90, 1, 0, 0);
         gl.glRotated(prawareka,1,0,0);
-        glu.gluCylinder(qobj2, 0.5, 0.5, 5f, 15, 5);
+        Walec(gl, 0.5f, 5.0f, -1.5f, -1.0f, -1.25f);
+        //glu.gluCylinder(qobj2, 0.5, 0.5, 5f, 15, 5);
 
         gl.glPopMatrix();
         gl.glPushMatrix();
@@ -299,17 +406,43 @@ public class Ludzik implements GLEventListener {
         gl.glColor3f(0,0,1);
         gl.glRotated(90, 1, 0, 0);
         gl.glRotated(lewanoga, 1,0,0);
-        glu.gluCylinder(qobj2, 1, 1, 7f, 15, 5);
+        Walec(gl, 0.9f, 5.0f, -1.5f, -1.0f, -1.25f);
+        //glu.gluCylinder(qobj2, 1, 1, 7f, 15, 5);
 
         gl.glPopMatrix();
         gl.glTranslatef(1,1,0);
         gl.glColor3f(0,0,1);
         gl.glRotated(90, 1, 0, 0);
         gl.glRotated(prawanoga, 1,0,0);
-        glu.gluCylinder(qobj2, 1, 1, 7f, 15, 5);
+        Walec(gl, 0.9f, 5.0f, -1.5f, -1.0f, -1.25f);
+        //glu.gluCylinder(qobj2, 1, 1, 7f, 15, 5);
         
         gl.glEndList();
 }
+    
+    public void choinka(GL gl) {
+        gl.glPushMatrix();
+        gl.glTranslatef(0.0f, -4.0f, -4.0f);
+        gl.glRotatef(-90.0f, -1.0f, 0.0f, 0.0f);
+        gl.glRotatef(xrot, 1.0f, 0.0f, 0.0f);
+        gl.glRotatef(yrot, 0.0f, 1.0f, 0.0f);
+        walec2(gl);
+        gl.glTranslatef(0.0f, 0.0f, -1.0f);
+        stozek(gl);
+        gl.glScalef(0.5f, 0.5f, 0.5f);
+        gl.glTranslatef(0.0f, 0.0f, -2.5f);
+        stozek(gl);
+        gl.glScalef(0.5f, 0.5f, 0.5f);
+        gl.glTranslatef(0.0f, 0.0f, -2.5f);
+        stozek(gl);
+        gl.glScalef(0.5f, 0.5f, 0.5f);
+        gl.glTranslatef(0.0f, 5.0f, 0.0f);
+
+        gl.glPopMatrix();
+    }
+    
+
+
    
     public void display(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
@@ -322,17 +455,19 @@ public class Ludzik implements GLEventListener {
         gl.glLoadIdentity();
         glu.gluLookAt(0,0,0,cx,cy,-1,0,1,0);
         
-        gl.glTranslatef(0.0f, 0.0f, -4.0f); //przesuniêcie o 6 jednostek
+        gl.glTranslatef(0.0f, 0.0f, -4.0f); 
         gl.glRotatef(xrot, 1.0f, 0.0f, 0.0f);
         gl.glRotatef(scena.kat, 0.0f, 1.0f, 0.0f);
         
+        gl.glTranslatef(0.0f, 0.0f, 0.0f);
+        
+        choinka(gl);
         // Drawing Using Triangles
         gl.glTranslatef(-scena.x, 90.5f, -scena.z); 
         scena.Rysuj(gl, t1, t2, t3);
         gl.glTranslatef(scena.x, -95.5f, scena.z); 
-        
-        
         ludzik(gl);
+               
         gl.glCallList(startList);      
        
         // Flush all drawing operations to the graphics card
